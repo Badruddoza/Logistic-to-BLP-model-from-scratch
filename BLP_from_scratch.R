@@ -1,3 +1,5 @@
+# BLP using cereal data
+## following Tyler Mangin
 while(!require(AER)){install.packages("AER")}
 while(!require(SQUAREM)){install.packages("SQUAREM")}
 while(!require(BB)){install.packages("BB")}
