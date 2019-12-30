@@ -1,0 +1,41 @@
+rm(list=ls())
+#sigmoid function, inverse of logit
+sigmoid <- function(z){1/(1+exp(-z))}
+sigmoid(3)
+#Loss function
+loss <- function(beta, X, y){
+  m <- length(y) # number of training examples
+  h <- sigmoid(X %*% beta)
+  J <- (t(-y)%*%log(h)-t(1-y)%*%log(1-h))/m
+  return(J)
+}
+#gradient function
+grad <- function(beta, X, y){
+  m <- length(y) 
+  h <- sigmoid(X%*%beta)
+  grad <- (t(X)%*%(h - y))/m
+  return(grad)
+}
+logisticReg <- function(X, y){
+  #remove NA rows
+  X <- na.omit(X)
+  y <- na.omit(y)
+  #add intercept term and convert to matrix
+  X <- as.matrix(cbind(intercept=1,X))
+  #move the intercept column to col1
+  y <- as.matrix(y)
+  #initialize beta
+  beta <- matrix(rep(0, ncol(X)), nrow = ncol(X))
+  #use the optim function to perform gradient descent
+  opti <- optim(beta, fn = loss, gr = grad, X = X, y = y)
+  #return coefficients
+  return(opti$par)
+}
+########### Put the model into work!
+set.seed(123)
+N <- 200 # sample size
+D <- 2 # number of predictors
+X <- data.frame(matrix(rnorm(N*D),nrow=N,ncol=D)) # data matrix
+y <- data.frame(matrix(rbinom(N,1,.5),nrow=N,ncol=1)) # binary predicted variable
+# combine the data
+logisticReg(X,y)
