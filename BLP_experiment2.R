@@ -1,6 +1,7 @@
 rm(list = ls())
 setwd("C:/Users/s.badruddoza/Documents")
 #install.packages("BLPestimatoR")
+#install.packages("dplyr")
 library("BLPestimatoR")
 library(dplyr)
 
@@ -24,7 +25,7 @@ write.csv(data,"BLPdata.csv")
 
 #Use an existing data rather than simulation
 data=read.csv("BLPdata.csv")
-data=select(data,-c(1,"deltatrue"))
+data=select(data,-c(1,deltatrue))
 View(data)
 
 #Specify the model
@@ -59,5 +60,4 @@ get_elasticities(blp_data=blp_data,
                  share_info = shareObj ,
                  theta_lin = 1,
                  variable = "price",
-                 products = c("4","20"),
                  market = 1)
