@@ -1,0 +1,97 @@
+rm(list=ls())
+#install.packages("BLPestimatoR")
+require(BLPestimatoR)
+
+######### Model ################################################################
+nevos_model <- as.formula("share ~  price + productdummy |
+    0+ productdummy |
+    price + sugar + mushy |
+    0+ IV1 + IV2 + IV3 + IV4 + IV5 + IV6 + IV7 + IV8 + IV9 + IV10 + 
+    IV11 + IV12 + IV13 + IV14 + IV15 + IV16 + IV17 + IV18 + IV19 + IV20")
+################################################################################
+
+
+######### Understanding the data type ##########################################
+productData_cereal
+head(productData_cereal)
+class(productData_cereal$cdid)
+class(productData_cereal$product_id)
+class(productData_cereal$productdummy)
+class(productData_cereal$price)
+class(productData_cereal$const)
+class(productData_cereal$mushy)
+################################################################################
+
+
+######### Integration draws ####################################################
+demographicData_cereal$income[1:4, 1:5]
+class(demographicData_cereal)
+class(demographicData_cereal$income)
+class(demographicData_cereal$income$cdid)
+class(demographicData_cereal$age$cdid)
+class(demographicData_cereal$incomesq$draw_2)
+################################################################################
+
+######### Integration draws ####################################################
+class(originalDraws_cereal)
+head(originalDraws_cereal)
+class(originalDraws_cereal$constant)
+# renaming constants:
+names(originalDraws_cereal)
+names(originalDraws_cereal)[1] <- "(Intercept)"
+class(originalDraws_cereal$constant$cdid)
+class(originalDraws_cereal$constant$draw_1)
+################################################################################
+
+
+########## Delta guesses #######################################################
+head(w_guesses_cereal)
+class(w_guesses_cereal)
+productData_cereal$startingGuessesDelta <- c(log(w_guesses_cereal)) # include orig. draws in the product data
+#View(w_guesses_cereal)
+################################################################################
+
+
+
+########### Data preparation ########################################################
+cereal_data <- BLP_data(
+  model = nevos_model,
+  market_identifier = "cdid",
+  par_delta = "startingGuessesDelta", #
+  product_identifier = "product_id",
+  productData = productData_cereal,
+  demographic_draws = demographicData_cereal,  #
+  blp_inner_tol = 1e-6, blp_inner_maxit = 5000,
+  integration_draws = originalDraws_cereal, #
+  integration_weights = rep(1 / 20, 20) #
+)
+################################################################################
+
+
+########## Theta guesses #######################################################
+theta_guesses_cereal
+theta_guesses_cereal[theta_guesses_cereal == 0] <- NA
+colnames(theta_guesses_cereal) <- c("unobs_sd", "income", "incomesq", "age", "child")
+rownames(theta_guesses_cereal) <- c("(Intercept)", "price", "sugar", "mushy")
+theta_guesses_cereal
+################################################################################
+
+
+########## Estimate BLP ########################################################
+cereal_est <- estimateBLP(
+  blp_data = cereal_data,
+  par_theta2 = theta_guesses_cereal,
+  solver_method = "BFGS", solver_maxit = 1000, solver_reltol = 1e-6,
+  standardError = "heteroskedastic",
+  extremumCheck = FALSE,
+  printLevel = 1
+)
+################################################################################
+
+
+dim(cereal_data$data$Z)
+class(cereal_est$sij)
+dim(cereal_est$sij)
+cereal_est$`#nmkt`
+cereal_data$parameters$nobs
+length(unique(cereal_data$parameters$product_id))
